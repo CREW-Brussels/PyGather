@@ -15,7 +15,7 @@ class API:
 
     def __init__(self, _api_key: str, _space_id: str):
         """
-        Creates an instance of the GatherTownAPI class
+        Creates an instance of the API class
         
         Args:
             _api_key (str): API Key
@@ -30,13 +30,13 @@ class API:
 
     def get_map(self, map_id: str):
         """
-        Calls the Gather HTTP API to get a map's data and returns a GatherTownObject
+        Calls the Gather HTTP API to get a map's data and returns a Map instance
 
         Args:
             map_id (str): Map ID, usually the name of the map
 
         Returns:
-            GatherTownMap object
+            Map object
         """
         payload = {"apiKey": self.API_KEY, "spaceId": self.SPACE_ID, "mapId": map_id}
         get_map_raw = requests.get(self.URL + "/getMap", params=payload)
@@ -103,10 +103,10 @@ class API:
 
     def set_map(self, map_instance) -> int:
         """
-        Calls the Gather HTTP API to get a map's data and returns a GatherTownObject
+        Calls the Gather HTTP API to set a map's data
 
         Args:
-            map_instance (GatherTownMap): An instance of GatherTownmap
+            map_instance (Map): An instance of Map
 
         Returns:
             Status code reply of the request
@@ -135,7 +135,7 @@ class API:
 class Base64HexArray:
     """
     Class that represents a Base64 Hexadecimal array
-    These arrays are used in the GatherTownMap data to represent positions of collisions, walls, floors etc...
+    These arrays are used in the Map data to represent positions of collisions, walls, floors etc...
     """
 
     def __init__(self, _hex_array_base64: str, _parent_map):
@@ -154,17 +154,12 @@ class Base64HexArray:
 
     def set_value_at_location(self, x: int, y: int, isTrue: bool):
         position = x + (y * self.parent_map.dimensions[0])
-        print("Position: " + str(position))
         byte_array = self.get_byte_array()
-        print("Byte Array length: " + str(len(byte_array)))
-        print("Original value is " + str(byte_array[position]))
 
         if isTrue:
             byte_array[position] = 1
         else:
             byte_array[position] = 0
-
-        print("New value is " + str(byte_array[position]))
 
         self.set_byte_array(byte_array)
 
@@ -195,7 +190,7 @@ class Map:
                  _collisions: Base64HexArray, _walls: dict, _portals: list, 
                  _spawns: list, _dimensions: list, _parent_space: str):
         """
-        Creates an instance of the GatherTownMap class
+        Creates an instance of the Map class
 
         Args:
             _background_image (str): 
@@ -206,7 +201,7 @@ class Map:
             _spaces (list): 
             _id (str): 
             _floors (dict): 
-            _collisions (GatherTownBase64HexArray): 
+            _collisions (Base64HexArray): 
             _walls (dict): 
             _portals (list):
             _spawns (list):
@@ -228,8 +223,8 @@ class Map:
         self.dimensions = _dimensions
         self.parent_space = _parent_space
 
-    def update_map(self, _gathertown_api: API):
-        return None
+    def update_map(self, api: API):
+        api.set_map(self)
 
     def add_object(self, obj):
         self.objects.append(obj)
@@ -302,6 +297,7 @@ class Map:
 
 class ObjectSoundProperties:
     """
+    Class that represents an object's sound properties
     """
 
     def __init__(self, volume, max_distance: int, source: str, loop: bool):
@@ -312,7 +308,7 @@ class ObjectSoundProperties:
 
 class Object:
     """
-    Class that represents a GatherTown Object
+    Class that represents an Object
     """
 
     def __init__(self, _name: str, _scale: float, 
