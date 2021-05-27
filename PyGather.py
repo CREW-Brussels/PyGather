@@ -44,6 +44,10 @@ class API:
         
         map_id = get_map["id"]
         map_bg = get_map["backgroundImagePath"]
+        try:
+            map_fg = get_map["foregroundImagePath"]
+        except:
+            map_fg = None
         map_assets = get_map["assets"]
         map_announcer = get_map["announcer"]
         map_objects = [] # Objects list are empty, will be filled after initialising map objects
@@ -63,7 +67,7 @@ class API:
         map_dimensions = get_map["dimensions"]
         map_parent_space = self.SPACE_ID
 
-        gathertown_map = Map(map_bg, map_assets, map_announcer, 
+        gathertown_map = Map(map_bg, map_fg, map_assets, map_announcer, 
                                        map_objects, map_use_drawn_bg, map_spaces, 
                                        map_id, map_floors, map_collisions, 
                                        map_walls, map_portals, map_spawns, 
@@ -169,6 +173,7 @@ class Map:
 
     Attributes:
         background_image (str): 
+        foreground_image (str):
         assets (list): 
         announcer (list):
         objects (list):
@@ -184,7 +189,7 @@ class Map:
         parent_space (str):
     """
 
-    def __init__(self, _background_image: str, _assets: list, 
+    def __init__(self, _background_image: str, _foreground_image: str, _assets: list, 
                  _announcer: list, _objects: list, _use_drawn_bg: bool, 
                  _spaces: list, _id: str, _floors: dict, 
                  _collisions: Base64HexArray, _walls: dict, _portals: list, 
@@ -210,6 +215,10 @@ class Map:
         """
         self.id = _id
         self.background_image = _background_image
+        try: 
+            self.foreground_image = _foreground_image
+        except:
+            self.foreground_image = None
         self.assets = _assets
         self.announcer = _announcer
         self.objects = _objects
@@ -251,6 +260,7 @@ class Map:
         """
         map_dict = {
             "backgroundImagePath": self.background_image,
+            "foregroundImagePath": self.foreground_image,
             "assets": self.assets,
             "announcer": self.announcer,
             "objects": [],
@@ -276,6 +286,7 @@ class Map:
         """
         map_dict = {
             "backgroundImagePath": self.background_image,
+            "foregroundImagePath": self.foreground_image,
             "assets": self.assets,
             "announcer": self.announcer,
             "objects": [],
@@ -305,6 +316,25 @@ class ObjectSoundProperties:
         self.max_distance = max_distance
         self.source = source
         self.loop = loop
+
+    def get_json(self):
+        sound_dict = {
+            "maxDistance": self.max_distance,
+            "src": self.source,
+            "loop": self.loop,
+            "volume": self.volume
+        }
+    
+        return json.dumps(sound_dict)
+
+    def get_dict(self):
+        sound_dict = {
+            "maxDistance": self.max_distance,
+            "src": self.source,
+            "loop": self.loop,
+            "volume": self.volume
+        }
+        return sound_dict
 
 class Object:
     """
@@ -423,8 +453,15 @@ class Object:
             "normal": self.normal,
             "type": self.type,
             "highlighted": self.highlighted,
-            "properties": self.properties
+            "properties": self.properties,
+            "sound": self.sound_properties.get_dict()
         }
+
+        try:
+            object_dict["sound"] = self.sound_properties.get_dict()
+        except:
+            object_dict["sound"] = None
+
         return json.dumps(object_dict)
 
     def get_dict(self):
@@ -441,7 +478,12 @@ class Object:
             "normal": self.normal,
             "type": self.type,
             "highlighted": self.highlighted,
-            "properties": self.properties
+            "properties": self.properties,
         }
-        return object_dict
 
+        try:
+            object_dict["sound"] = self.sound_properties.get_dict()
+        except:
+            object_dict["sound"] = None
+
+        return object_dict
